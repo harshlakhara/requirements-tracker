@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Work — Requirements Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Tracker" />
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --panel-2: #f8fafc; --border: #e2e8f0;
+    --text: #0f172a; --muted: #64748b; --accent: #4f46e5; --accent-soft: #eef2ff;
+    --green: #16a34a; --amber: #d97706; --red: #dc2626;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  }
+  [data-theme="dark"] {
+    --bg: #0b1120; --panel: #131c2e; --panel-2: #0f1728; --border: #24314a;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #818cf8; --accent-soft: #1e254a;
+    --shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+  header { position: sticky; top: 0; z-index: 20; background: var(--panel);
+    border-bottom: 1px solid var(--border); box-shadow: var(--shadow); }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 10px 18px; flex-wrap: wrap; }
+  .logo { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .logo .dot { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+  .grow { flex: 1; }
+  input, select, textarea { background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font: inherit; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; width: 100%; }
+  button { background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer; white-space: nowrap; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.primary:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--red); }
+  button.sm { padding: 4px 8px; font-size: 12px; border-radius: 6px; }
+  .nav { display: flex; gap: 4px; padding: 0 12px; flex-wrap: wrap; }
+  .navbtn { border: none; background: transparent; border-bottom: 2px solid transparent;
+    padding: 10px 14px; color: var(--muted); font-weight: 600; }
+  .navbtn:hover { color: var(--text); }
+  .navbtn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  main { padding: 18px; max-width: 1200px; margin: 0 auto; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: var(--shadow); }
+  .grid { display: grid; gap: 12px; }
+  .cards { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .muted { color: var(--muted); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; border: 1px solid var(--border); }
+  .pill.p-Critical { background: #fee2e2; color: #991b1b; } .pill.p-High { background: #ffedd5; color: #9a3412; }
+  .pill.p-Medium { background: #fef9c3; color: #854d0e; } .pill.p-Low { background: #dcfce7; color: #166534; }
+  .pill.s-Backlog { background: #f1f5f9; color: #475569; } .pill.s-In-Progress { background: #dbeafe; color: #1e40af; }
+  .pill.s-Review { background: #ede9fe; color: #5b21b6; } .pill.s-Done { background: #dcfce7; color: #166534; }
+  .pill.s-Blocked { background: #fee2e2; color: #991b1b; }
+  [data-theme="dark"] .pill { filter: saturate(.85) brightness(.95); }
+  .tag { background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .progress { height: 8px; background: var(--panel-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+  .progress > span { display: block; height: 100%; background: var(--accent); }
+  .task-card { cursor: pointer; transition: transform .08s, border-color .08s; position: relative; }
+  .task-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .task-title { font-weight: 700; font-size: 15px; margin-right: 24px; }
+  .star { position: absolute; top: 12px; right: 12px; font-size: 16px; cursor: pointer; background: none; border: none; padding: 0; }
+  .metaline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  .empty { text-align: center; color: var(--muted); padding: 48px 20px; }
+  .save-ind { font-size: 12px; color: var(--muted); }
+  .banner { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; display: none; }
+  /* detail */
+  .back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 16px 0; flex-wrap: wrap; }
+  .subtab { border: none; background: transparent; border-bottom: 2px solid transparent; padding: 8px 12px; color: var(--muted); font-weight: 600; }
+  .subtab:hover { color: var(--text); } .subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 8px 0; }
+  .kv .k { color: var(--muted); font-size: 13px; }
+  .checkitem, .todo, .note-item, .pipe { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; background: var(--panel); }
+  .todo { display: flex; align-items: flex-start; gap: 10px; }
+  .todo.done .t-text { text-decoration: line-through; color: var(--muted); }
+  .todo input[type=checkbox], .checkitem input[type=checkbox] { width: 18px; height: 18px; margin-top: 1px; }
+  .t-body { flex: 1; } .t-sub { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .checkitem { display: flex; align-items: flex-start; gap: 10px; }
+  .checkitem.done span { text-decoration: line-through; color: var(--muted); }
+  .due-over { color: var(--red); font-weight: 700; } .due-soon { color: var(--amber); font-weight: 700; }
+  .stage { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+  .stage:last-child { border-bottom: none; } .stage .name { flex: 1; }
+  .dot-s { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+  .dot-s.ok { background: var(--green); } .dot-s.run { background: var(--amber); } .dot-s.fail { background: var(--red); }
+  .wb-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .wb-sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; padding: 0; }
+  .wb-sw.active { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .wb-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+  #wbCanvas { display: block; width: 100%; height: 520px; touch-action: none; cursor: crosshair; background: #fff; }
+  button.wb-tool.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .quickadd { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  label.f { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin: 10px 0 4px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .full { grid-column: 1 / -1; }
+  dialog { border: 1px solid var(--border); border-radius: 14px; padding: 0; background: var(--panel); color: var(--text);
+    max-width: 640px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  dialog::backdrop { background: rgba(15,23,42,.5); }
+  .dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .dlg-body { padding: 6px 18px 18px; max-height: 70vh; overflow: auto; }
+  .dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border); }
+  .stat { text-align: center; } .stat .n { font-size: 26px; font-weight: 700; } .stat .l { color: var(--muted); font-size: 12px; }
+  ul.plain { list-style: none; padding: 0; margin: 0; }
+  .activity li { padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  a.link { color: var(--accent); cursor: pointer; }
+  #wbHost .excalidraw { --zIndex-layerUI: 5; }
+</style>
+<!-- Excalidraw whiteboard (loaded from CDN; app falls back to a built-in canvas when offline) -->
+<script>window.EXCALIDRAW_ASSET_PATH = "https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/";</script>
+<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo" id="logoHome"><span class="dot"></span> My Work</div>
+    <div class="grow"></div>
+    <input id="search" type="search" placeholder="Search…" style="min-width:160px" />
+    <button id="btnNew" class="primary">＋ New task</button>
+    <button id="btnExport" title="Download all data as JSON">⬇</button>
+    <button id="btnImport" title="Import JSON">⬆</button>
+    <input type="file" id="fileInput" accept="application/json,.json" style="display:none" />
+    <button id="btnJira" title="Sync from Jira inbox now">⟳ Jira</button>
+    <button id="btnTheme" class="ghost" title="Toggle theme">🌓</button>
+    <span class="save-ind" id="saveInd"></span>
+    <span class="save-ind" id="jiraBadge"></span>
+  </div>
+  <div class="nav" id="nav">
+    <button class="navbtn active" data-view="mine">My Work</button>
+    <button class="navbtn" data-view="all">All Tasks</button>
+    <button class="navbtn" data-view="board">Dashboard</button>
+  </div>
+</header>
+
+<main>
+  <div class="banner" id="banner"></div>
+  <div id="screen"></div>
+</main>
+
+<!-- Requirement dialog -->
+<dialog id="reqDialog">
+  <div class="dlg-head"><b id="reqDlgTitle">New task</b><button type="button" class="ghost sm" data-close>✕</button></div>
+  <div class="dlg-body">
+    <div class="form-grid">
+      <div class="full"><label class="f">Title *</label><input id="fTitle" style="width:100%" /></div>
+      <div><label class="f">Requester</label><input id="fReq" placeholder="Name" style="width:100%" /></div>
+      <div><label class="f">Role</label><select id="fRole" style="width:100%">
+        <option>Teammate</option><option>Manager</option><option>Lead</option><option>Product</option><option>Client</option><option>Other</option></select></div>
+      <div><label class="f">Priority</label><select id="fPrio" style="width:100%">
+        <option>Critical</option><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div><label class="f">Status</label><select id="fStatus" style="width:100%">
+        <option>Backlog</option><option>In Progress</option><option>Review</option><option>Blocked</option><option>Done</option></select></div>
+      <div><label class="f">Progress %</label><input id="fProgress" type="number" min="0" max="100" value="0" style="width:100%" /></div>
+      <div><label class="f">Target date</label><input id="fTarget" type="date" style="width:100%" /></div>
+      <div class="full"><label class="f"><input type="checkbox" id="fMine" style="width:auto;height:auto"/> I'm actively working on this (show in My Work)</label></div>
+      <div class="full"><label class="f">Description</label><textarea id="fDesc" rows="3"></textarea></div>
+      <div class="full"><label class="f">Tags (comma separated)</label><input id="fTags" style="width:100%" placeholder="auth, api" /></div>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <button type="button" class="ghost danger" id="btnDeleteReq" style="margin-right:auto; display:none">Delete</button>
+    <button type="button" data-close>Cancel</button>
+    <button class="primary" id="btnSaveReq" type="button">Save</button>
+  </div>
+</dialog>
+
+<!-- Note dialog -->
+<dialog id="noteDialog">
+  <div class="dlg-head"><b id="noteDlgTitle">Note</b><button type="button" class="ghost sm" data-close>✕</button></div>
+  <div class="dlg-body">
+    <label class="f">Title</label><input id="nTitle" style="width:100%" />
+    <label class="f">Body</label><textarea id="nBody" rows="8" placeholder="Meeting notes, decisions, context…"></textarea>
+  </div>
+  <div class="dlg-foot">
+    <button type="button" class="ghost danger" id="btnDeleteNote" style="margin-right:auto; display:none">Delete</button>
+    <button type="button" data-close>Cancel</button>
+    <button class="primary" id="btnSaveNote" type="button">Save</button>
+  </div>
+</dialog>
+
+<!-- Pipeline dialog -->
+<dialog id="pipeDialog">
+  <div class="dlg-head"><b id="pipeDlgTitle">Pipeline</b><button type="button" class="ghost sm" data-close>✕</button></div>
+  <div class="dlg-body">
+    <label class="f">Pipeline name</label><input id="pName" style="width:100%" placeholder="e.g. Deploy checkout-service" />
+    <label class="f">Stages (one per line) — prefix [ok], [run], [fail], or blank = pending</label>
+    <textarea id="pStages" rows="8" placeholder="[ok] Build&#10;[run] Deploy SIT&#10;Deploy UAT&#10;Deploy PRD"></textarea>
+  </div>
+  <div class="dlg-foot">
+    <button type="button" class="ghost danger" id="btnDeletePipe" style="margin-right:auto; display:none">Delete</button>
+    <button type="button" data-close>Cancel</button>
+    <button class="primary" id="btnSavePipe" type="button">Save</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+(function () {
+  const LS_KEY = "freqTracker.v2", LS_OLD = "freqTracker.v1";
+  const STATUSES = ["Backlog", "In Progress", "Review", "Blocked", "Done"];
+  const PRIOS = ["Critical", "High", "Medium", "Low"];
+  const PRIO_RANK = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+
+  let state = { requirements: [], notes: [], todos: [], pipelines: [], activity: [], settings: { theme: "light" }, jiraSeen: [], jiraDismissed: [], lastJiraSync: "", seq: 1 };
+  let editingReqId = null, editingNoteId = null, editingPipeId = null, dialogCtxReq = null;
+  let view = "mine";          // mine | all | board
+  let curId = null;           // open requirement id (detail)
+  let subtab = "overview";    // overview | notes | todos | pipelines | activity
+
+  // ---------- utils ----------
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const uid = () => "id" + (state.seq++) + "-" + Math.floor(performance.now());
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const nl2br = (s) => esc(s).replace(/\n/g, "<br>");
+  const today = () => new Date().toISOString().slice(0, 10);
+  const nowStr = () => new Date().toLocaleString();
+  function fmtDate(d) { if (!d) return ""; const dt = new Date(d); return isNaN(dt) ? d : dt.toLocaleDateString(); }
+  function daysUntil(d) { if (!d) return null; return Math.floor((new Date(d + "T23:59:59") - new Date()) / 86400000); }
+  const getReq = (id) => state.requirements.find(r => r.id === id);
+  function log(msg, reqId) { state.activity.unshift({ t: nowStr(), msg, reqId: reqId || "" }); state.activity = state.activity.slice(0, 80); }
+  function showBanner(msg) { const b = $("#banner"); b.textContent = msg; b.style.display = "block"; setTimeout(() => b.style.display = "none", 6000); }
+
+  // ---------- persistence ----------
+  let saveTimer = null;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); $("#saveInd").textContent = "Saved " + new Date().toLocaleTimeString(); }
+      catch (e) { $("#saveInd").textContent = "⚠ not saved — use Export"; }
+    }, 250);
+  }
+  function normalize() {
+    ["requirements", "notes", "todos", "pipelines", "activity", "jiraSeen", "jiraDismissed"].forEach(k => { if (!Array.isArray(state[k])) state[k] = []; });
+    if (!state.settings) state.settings = { theme: "light" };
+    state.requirements.forEach(r => {
+      if (typeof r.mine !== "boolean") r.mine = false;
+      if (!Array.isArray(r.tags)) r.tags = [];
+      if (!Array.isArray(r.acceptItems)) {
+        r.acceptItems = (r.accept ? String(r.accept).split("\n") : []).map(t => t.trim()).filter(Boolean).map(t => ({ id: uid(), text: t, done: false }));
+      }
+    });
+    state.notes.forEach(n => { if (n.reqId === undefined) n.reqId = ""; });
+    state.pipelines.forEach(p => { if (p.reqId === undefined) p.reqId = ""; });
+  }
+  function load() {
+    try {
+      let raw = localStorage.getItem(LS_KEY);
+      if (!raw) { const old = localStorage.getItem(LS_OLD); if (old) { raw = old; } }
+      if (raw) { state = Object.assign(state, JSON.parse(raw)); if (!state.settings) state.settings = { theme: state.theme || "light" }; normalize(); }
+      else { seedDemo(); }
+    } catch (e) { showBanner("Could not read saved data: " + e.message); seedDemo(); }
+  }
+  function seedDemo() {
+    const r1 = { id: uid(), title: "SSO login for internal portal", requester: "Priya", role: "Manager",
+      priority: "High", status: "In Progress", progress: 40, target: "", mine: true,
+      desc: "Allow staff to sign in with corporate SSO (Okta). MVP = login only; MFA later.",
+      acceptItems: [{ id: uid(), text: "Users can log in via Okta", done: true }, { id: uid(), text: "Session persists 8h", done: false }, { id: uid(), text: "Audit log records logins", done: false }],
+      tags: ["auth", "security"], created: nowStr(), updated: nowStr() };
+    const r2 = { id: uid(), title: "Export report to CSV", requester: "Sam", role: "Lead", priority: "Medium",
+      status: "Backlog", progress: 0, target: "", mine: false, desc: "Add CSV export to the analytics dashboard.",
+      acceptItems: [{ id: uid(), text: "Button on dashboard", done: false }], tags: ["reporting"], created: nowStr(), updated: nowStr() };
+    state.requirements.push(r1, r2);
+    state.todos.push({ id: uid(), reqId: r1.id, text: "Confirm Okta app credentials with IT", done: false, assignee: "Me", due: "", created: nowStr() });
+    state.notes.push({ id: uid(), reqId: r1.id, title: "Kickoff", body: "Scoped with Priya. Ship login first, add MFA in phase 2.", updated: nowStr() });
+    state.pipelines.push({ id: uid(), reqId: r1.id, name: "Deploy portal", stages: [{ name: "Build", st: "ok" }, { name: "Deploy SIT", st: "run" }, { name: "Deploy UAT", st: "" }, { name: "Deploy PRD", st: "" }] });
+    log("Sample data loaded — edit or delete it, then add your own.");
+  }
+
+  // ---------- export / import / markdown ----------
+  function doExport() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = "requirements-tracker-" + today() + ".json"; a.click(); URL.revokeObjectURL(a.href);
+  }
+  function doImport(file) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const data = JSON.parse(rd.result);
+        if (!data || typeof data !== "object") throw new Error("invalid file");
+        const merge = confirm("OK = MERGE into current data.\nCancel = REPLACE everything.");
+        if (merge) {
+          ["requirements", "notes", "todos", "pipelines"].forEach(k => {
+            const seen = new Set((state[k] || []).map(x => x.id));
+            (data[k] || []).forEach(x => { if (!seen.has(x.id)) state[k].push(x); });
+          });
+          log("Imported (merged).");
+        } else {
+          const theme = state.settings.theme;
+          state = Object.assign({ requirements: [], notes: [], todos: [], pipelines: [], activity: [], settings: { theme }, seq: 1 }, data);
+          if (!state.settings) state.settings = { theme };
+          log("Imported (replaced).");
+        }
+        normalize(); save(); render(); showBanner("Import successful.");
+      } catch (e) { showBanner("Import failed: " + e.message); }
+    };
+    rd.readAsText(file);
+  }
+
+  // ---------- Jira inbox bridge ----------
+  // The hourly cron writes ./jira-inbox.json next to this file. We fetch it, merge NEW keys
+  // additively, refresh links on existing ones (without touching user edits), and never
+  // recreate a key the user deleted (jiraDismissed). Merge happens here, in the browser,
+  // because only the browser knows what the user changed.
+  function mapPrio(p) { p = String(p || "").toLowerCase(); if (p.includes("highest") || p.includes("critical") || p.includes("block")) return "Critical"; if (p.includes("high")) return "High"; if (p.includes("low")) return "Low"; return "Medium"; }
+  function mapStatus(s) { s = String(s || "").toLowerCase(); if (s.includes("progress")) return "In Progress"; if (s.includes("review")) return "Review"; if (s.includes("block")) return "Blocked"; if (s.includes("done") || s.includes("closed") || s.includes("resolved")) return "Done"; return "Backlog"; }
+  async function fetchJiraInbox(manual) {
+    try {
+      const res = await fetch("jira-inbox.json?ts=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) { if (manual) showBanner("No jira-inbox.json yet (HTTP " + res.status + "). The hourly job writes it."); return; }
+      mergeJiraInbox(await res.json(), manual);
+    } catch (e) { if (manual) showBanner("Jira sync failed: " + e.message); }
+  }
+  function mergeJiraInbox(data, manual) {
+    const issues = (data && data.issues) || [];
+    const dismissed = new Set(state.jiraDismissed || []);
+    let added = 0, updated = 0; const newTitles = [];
+    issues.forEach(is => {
+      if (!is.key) return;
+      let r = state.requirements.find(x => x.jiraKey === is.key);
+      if (r) {
+        r.jiraUrl = is.url || r.jiraUrl; r.jiraLinks = is.links || r.jiraLinks || []; r.jiraStatus = is.status || r.jiraStatus || "";
+        updated++;
+      } else if (!dismissed.has(is.key)) {
+        const now = nowStr();
+        r = { id: uid(), title: is.title || is.summary || is.key, requester: is.requester || is.reporter || "", role: "Product",
+          priority: mapPrio(is.priority), status: mapStatus(is.status), progress: 0, target: is.duedate || "", mine: false,
+          desc: (is.summary || "") + (is.description ? ("\n\n" + is.description) : ""), acceptItems: [],
+          tags: ["jira"].concat(Array.isArray(is.labels) ? is.labels : []),
+          jiraKey: is.key, jiraUrl: is.url || "", jiraLinks: is.links || [], jiraStatus: is.status || "",
+          created: now, updated: now, fromJira: true };
+        state.requirements.push(r);
+        const linkLines = (is.links || []).map(l => `- ${l.type || "link"}: ${l.title || ""} ${l.url || ""}`).join("\n");
+        state.notes.push({ id: uid(), reqId: r.id, title: "From Jira " + is.key,
+          body: `Auto-imported from Jira.\nKey: ${is.key}\nURL: ${is.url || ""}\nStatus: ${is.status || ""}\nReporter: ${is.requester || is.reporter || ""}\n\nGitLab links:\n${linkLines || "(none found yet)"}\n\nStart with:\n- Read the ticket and confirm scope\n- Break acceptance criteria into checklist items\n- Link/verify the MR and pipeline`, updated: now });
+        log("Imported from Jira: " + is.key, r.id); added++; newTitles.push(is.key + " " + (is.title || ""));
+      }
+      if (!(state.jiraSeen || []).includes(is.key)) state.jiraSeen.push(is.key);
+    });
+    // Reconcile: drop auto-imported Jira tasks that are no longer in the current sprint,
+    // UNLESS the user starred them (⭐ = keep). Manually-created tasks are never touched.
+    const incoming = new Set(issues.map(is => is.key).filter(Boolean));
+    const removeIds = new Set(state.requirements.filter(r => r.fromJira && !r.mine && r.jiraKey && !incoming.has(r.jiraKey)).map(r => r.id));
+    let pruned = 0;
+    if (removeIds.size) {
+      pruned = removeIds.size;
+      state.requirements = state.requirements.filter(r => !removeIds.has(r.id));
+      state.notes = state.notes.filter(n => !removeIds.has(n.reqId));
+      state.todos = state.todos.filter(t => !removeIds.has(t.reqId));
+      state.pipelines = state.pipelines.filter(p => !removeIds.has(p.reqId));
+      log("Removed " + pruned + " Jira task(s) no longer in the current sprint");
+    }
+    state.lastJiraSync = (data && data.generatedAt) || nowStr();
+    if (added || updated || pruned) { save(); if (!curId) render(); }
+    updateJiraBadge();
+    if (manual) showBanner("Jira sync: " + added + " new, " + updated + " updated, " + pruned + " removed (out of sprint)." + (newTitles.length ? " New: " + newTitles.join(", ") : ""));
+  }
+  function updateJiraBadge() {
+    const el = $("#jiraBadge"); if (!el) return;
+    if (!state.lastJiraSync) { el.textContent = ""; return; }
+    const t = new Date(state.lastJiraSync); el.textContent = "Jira ✓ " + (isNaN(t) ? state.lastJiraSync : t.toLocaleTimeString());
+  }
+
+  // ---------- routing ----------
+  function go(v) { view = v; curId = null; location.hash = "#/" + v; render(); }
+  function open(id, tab) { curId = id; subtab = tab || "overview"; location.hash = "#/task/" + id + "/" + subtab; render(); }
+  function fromHash() {
+    const h = (location.hash || "").replace(/^#\/?/, "").split("/");
+    if (h[0] === "task" && h[1] && getReq(h[1])) { curId = h[1]; subtab = h[2] || "overview"; view = "mine"; }
+    else if (["mine", "all", "board"].includes(h[0])) { view = h[0]; curId = null; }
+  }
+
+  // ---------- render root ----------
+  function render() {
+    try {
+      teardownWhiteboard();
+      $$(".navbtn").forEach(b => b.classList.toggle("active", b.dataset.view === view && !curId));
+      const s = $("#screen");
+      if (curId && getReq(curId)) s.innerHTML = detailHTML(getReq(curId));
+      else if (view === "board") s.innerHTML = boardHTML();
+      else s.innerHTML = listHTML(view);
+      wireScreen();
+    } catch (e) { showBanner("Render error: " + e.message); console.error(e); }
+  }
+
+  function q() { return ($("#search").value || "").toLowerCase().trim(); }
+  function matchReq(r) {
+    const s = q(); if (!s) return true;
+    return [r.title, r.requester, r.role, r.priority, r.status, r.desc, (r.tags || []).join(" ")].join(" ").toLowerCase().includes(s);
+  }
+  function statusCls(st) { return "s-" + String(st || "").replace(/\s/g, "-"); }
+  function reqProgress(r) { return Math.max(0, Math.min(100, Number(r.progress) || 0)); }
+
+  // ---------- list (My Work / All) ----------
+  function taskCard(r) {
+    const todos = state.todos.filter(t => t.reqId === r.id);
+    const doneT = todos.filter(t => t.done).length;
+    const notes = state.notes.filter(n => n.reqId === r.id).length;
+    const d = daysUntil(r.target);
+    const dueBadge = (r.status !== "Done" && d !== null && d <= 7)
+      ? `<span class="${d < 0 ? "due-over" : "due-soon"}">${d < 0 ? "overdue " + (-d) + "d" : d === 0 ? "due today" : "due " + d + "d"}</span>` : "";
+    return `<div class="card task-card" data-open="${r.id}">
+      <button class="star" data-star="${r.id}" title="Toggle My Work">${r.mine ? "⭐" : "☆"}</button>
+      <div class="task-title">${esc(r.title)}</div>
+      <div class="metaline">
+        <span class="pill p-${esc(r.priority)}">${esc(r.priority)}</span>
+        <span class="pill ${statusCls(r.status)}">${esc(r.status)}</span>
+        ${r.jiraKey ? `<span class="tag">🔗 ${esc(r.jiraKey)}</span>` : ""}
+        ${r.requester ? `<span class="muted">👤 ${esc(r.requester)}</span>` : ""}
+        ${dueBadge}
+      </div>
+      <div class="progress"><span style="width:${reqProgress(r)}%"></span></div>
+      <div class="metaline" style="justify-content:space-between">
+        <span class="muted">${reqProgress(r)}%</span>
+        <span class="muted">${todos.length ? "✅ " + doneT + "/" + todos.length : ""} ${notes ? " · 📝 " + notes : ""}</span>
+      </div>
+      ${(r.tags && r.tags.length) ? `<div class="metaline">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
+    </div>`;
+  }
+  function listHTML(which) {
+    let list = state.requirements.filter(matchReq);
+    if (which === "mine") list = list.filter(r => r.mine);
+    list.sort((a, b) => (a.status === "Done") - (b.status === "Done") || PRIO_RANK[a.priority] - PRIO_RANK[b.priority] || (b.updated || "").localeCompare(a.updated || ""));
+    const head = which === "mine"
+      ? `<h2 style="margin:4px 0 2px">⭐ My Work <span class="muted" style="font-weight:400">(${list.length})</span></h2>
+         <p class="muted" style="margin:0 0 14px">Tasks you're actively working on. Click one to open its workspace.</p>`
+      : `<h2 style="margin:4px 0 2px">All Tasks <span class="muted" style="font-weight:400">(${list.length})</span></h2>
+         <p class="muted" style="margin:0 0 14px">Every requirement. Tap ☆ to add one to My Work.</p>`;
+    if (!list.length) {
+      const msg = which === "mine" ? `No active tasks. Go to <b>All Tasks</b> and tap ☆, or create a <b>New task</b>.` : `No tasks yet. Click <b>＋ New task</b>.`;
+      return head + `<div class="empty">${msg}</div>`;
+    }
+    return head + `<div class="grid cards">${list.map(taskCard).join("")}</div>`;
+  }
+
+  // ---------- dashboard ----------
+  function boardHTML() {
+    const R = state.requirements;
+    const done = R.filter(r => r.status === "Done").length;
+    const openTodos = state.todos.filter(t => !t.done).length;
+    const avg = R.length ? Math.round(R.reduce((a, r) => a + reqProgress(r), 0) / R.length) : 0;
+    const cards = [[R.length, "Tasks"], [R.filter(r => r.mine).length, "My Work"], [done, "Done"], [R.length - done, "Open"], [openTodos, "Open TODOs"], [avg + "%", "Avg progress"]];
+    const due = state.todos.filter(t => !t.done && t.due).map(t => ({ t, d: daysUntil(t.due) })).filter(x => x.d !== null && x.d <= 7).sort((a, b) => a.d - b.d);
+    const bar = (label, val, cls) => { const pct = R.length ? Math.round(val / R.length * 100) : 0;
+      return `<div style="margin:6px 0"><div class="row" style="justify-content:space-between;font-size:12px"><span class="pill ${cls}">${esc(label)}</span><span class="muted">${val}</span></div><div class="progress" style="margin-top:4px"><span style="width:${pct}%"></span></div></div>`; };
+    return `<h2 style="margin:4px 0 12px">Dashboard</h2>
+      <div class="grid cards">${cards.map(c => `<div class="card stat"><div class="n">${esc(c[0])}</div><div class="l">${esc(c[1])}</div></div>`).join("")}</div>
+      <div class="row" style="align-items:flex-start;margin-top:14px">
+        <div class="card" style="flex:1;min-width:280px"><b>By status</b>${STATUSES.map(s => bar(s, R.filter(r => r.status === s).length, statusCls(s))).join("")}</div>
+        <div class="card" style="flex:1;min-width:280px"><b>By priority</b>${PRIOS.map(p => bar(p, R.filter(r => r.priority === p).length, "p-" + p)).join("")}</div>
+      </div>
+      <div class="row" style="align-items:flex-start;margin-top:14px">
+        <div class="card" style="flex:1;min-width:280px"><b>⚠ Due soon / overdue</b>
+          <ul class="plain" style="margin-top:8px">${due.length ? due.map(x => { const r = getReq(x.t.reqId); return `<li class="todo"><div class="t-body"><div>${esc(x.t.text)}</div><div class="t-sub"><span class="${x.d < 0 ? "due-over" : "due-soon"}">${x.d < 0 ? "overdue " + (-x.d) + "d" : x.d === 0 ? "due today" : "due " + x.d + "d"}</span>${r ? `<a class="link" data-open="${r.id}">${esc(r.title)}</a>` : ""}</div></div></li>`; }).join("") : `<p class="empty">Nothing due soon 🎉</p>`}</ul></div>
+        <div class="card" style="flex:1;min-width:280px"><b>Recent activity</b>
+          <ul class="plain activity" style="margin-top:8px">${state.activity.slice(0, 14).map(a => `<li><span class="muted">${esc(a.t)}</span> — ${a.reqId && getReq(a.reqId) ? `<a class="link" data-open="${a.reqId}">${esc(a.msg)}</a>` : esc(a.msg)}</li>`).join("") || `<p class="empty">No activity.</p>`}</ul></div>
+      </div>`;
+  }
+
+  // ---------- detail ----------
+  function detailHTML(r) {
+    const tabs = [["overview", "Overview"], ["notes", "Notes"], ["todos", "TODOs"], ["whiteboard", "Whiteboard"], ["pipelines", "Pipelines"], ["activity", "Activity"]];
+    const counts = { notes: state.notes.filter(n => n.reqId === r.id).length, todos: state.todos.filter(t => t.reqId === r.id).length, pipelines: state.pipelines.filter(p => p.reqId === r.id).length };
+    return `<button class="back ghost" id="backBtn">← Back</button>
+      <div class="card">
+        <div class="detail-head">
+          <div>
+            <div class="row"><h2 style="margin:0">${esc(r.title)}</h2><button class="star" style="position:static" data-star="${r.id}">${r.mine ? "⭐" : "☆"}</button></div>
+            <div class="metaline">
+              <span class="pill p-${esc(r.priority)}">${esc(r.priority)}</span>
+              <span class="pill ${statusCls(r.status)}">${esc(r.status)}</span>
+              ${r.requester ? `<span class="muted">👤 ${esc(r.requester)} (${esc(r.role)})</span>` : ""}
+              ${r.target ? `<span class="muted">🎯 ${esc(fmtDate(r.target))}</span>` : ""}
+            </div>
+          </div>
+          <div class="row"><button class="sm" id="btnEditReq">✎ Edit</button></div>
+        </div>
+        <div style="margin-top:10px"><div class="progress"><span style="width:${reqProgress(r)}%"></span></div>
+          <div class="row" style="justify-content:space-between;margin-top:6px"><span class="muted">${reqProgress(r)}% complete</span>
+          <input type="range" min="0" max="100" value="${reqProgress(r)}" id="detProg" style="width:160px"/></div></div>
+      </div>
+      <div class="subtabs">${tabs.map(t => `<button class="subtab ${subtab === t[0] ? "active" : ""}" data-sub="${t[0]}">${t[1]}${counts[t[0]] ? ` <span class="muted">(${counts[t[0]]})</span>` : ""}</button>`).join("")}</div>
+      <div id="subpane">${subPaneHTML(r)}</div>`;
+  }
+  function subPaneHTML(r) {
+    if (subtab === "notes") return notesPane(r);
+    if (subtab === "todos") return todosPane(r);
+    if (subtab === "whiteboard") return whiteboardPane(r);
+    if (subtab === "pipelines") return pipesPane(r);
+    if (subtab === "activity") return activityPane(r);
+    return overviewPane(r);
+  }
+  function overviewPane(r) {
+    const items = r.acceptItems || [];
+    const doneA = items.filter(i => i.done).length;
+    return `${r.jiraKey ? `<div class="card" style="margin-bottom:12px">
+      <b>🔗 Jira ${esc(r.jiraKey)}</b> ${r.jiraUrl ? `<a class="link" href="${esc(r.jiraUrl)}" target="_blank" rel="noopener">open ticket ↗</a>` : ""}
+      ${r.jiraStatus ? `<span class="muted"> · ${esc(r.jiraStatus)}</span>` : ""}
+      <div style="margin-top:8px"><b style="font-size:13px">GitLab</b>
+      ${(r.jiraLinks && r.jiraLinks.length) ? r.jiraLinks.map(l => `<div style="margin-top:2px">• ${esc(l.type || "link")}: <a class="link" href="${esc(l.url || "#")}" target="_blank" rel="noopener">${esc(l.title || l.url || "")}</a>${l.status ? ` <span class="muted">(${esc(l.status)})</span>` : ""}</div>`).join("") : `<span class="muted"> no MRs/pipelines discovered yet</span>`}</div>
+    </div>` : ""}
+    <div class="card">
+      <b>Description</b>
+      <div class="muted" style="margin:6px 0 14px">${r.desc ? nl2br(r.desc) : "<i>No description. Click Edit to add one.</i>"}</div>
+      <div class="row" style="justify-content:space-between"><b>Acceptance criteria ${items.length ? `<span class="muted">(${doneA}/${items.length})</span>` : ""}</b></div>
+      <div style="margin-top:8px">${items.map(i => `<div class="checkitem ${i.done ? "done" : ""}"><input type="checkbox" data-acc="${i.id}" ${i.done ? "checked" : ""}/><span style="flex:1">${esc(i.text)}</span><button class="sm ghost danger" data-accdel="${i.id}">✕</button></div>`).join("") || `<p class="muted">No criteria yet.</p>`}</div>
+      <div class="quickadd" style="margin-top:10px"><input id="accInput" placeholder="Add acceptance criterion + Enter" style="flex:1"/><button class="primary" id="accAdd">Add</button></div>
+      ${(r.tags && r.tags.length) ? `<div class="metaline" style="margin-top:10px">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
+      <div class="kv" style="margin-top:14px">
+        <div class="k">Created</div><div>${esc(r.created || "—")}</div>
+        <div class="k">Updated</div><div>${esc(r.updated || "—")}</div>
+      </div>
+    </div>`;
+  }
+  function notesPane(r) {
+    const list = state.notes.filter(n => n.reqId === r.id).slice().reverse();
+    return `<div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="primary sm" id="addNote">＋ Note</button></div>
+      ${list.length ? list.map(n => `<div class="note-item"><div class="row" style="justify-content:space-between"><b>${esc(n.title || "Untitled")}</b><button class="sm ghost" data-editnote="${n.id}">✎</button></div><div class="muted" style="font-size:11px">${esc(n.updated || "")}</div><div style="margin-top:6px">${nl2br(n.body || "")}</div></div>`).join("") : `<div class="empty">No notes yet. Add meeting notes, decisions, context.</div>`}`;
+  }
+  function todosPane(r) {
+    const list = state.todos.filter(t => t.reqId === r.id).slice().sort((a, b) => (a.done - b.done) || ((a.due || "z").localeCompare(b.due || "z")));
+    return `<div class="quickadd"><input id="tdText" placeholder="Add a TODO + Enter" style="flex:1;min-width:200px"/><input id="tdAssignee" placeholder="Assignee" style="width:120px"/><input id="tdDue" type="date"/><button class="primary" id="tdAdd">Add</button></div>
+      ${list.length ? list.map(t => { const d = daysUntil(t.due); const dc = t.done ? "" : d === null ? "" : d < 0 ? "due-over" : d <= 2 ? "due-soon" : "";
+        return `<div class="todo ${t.done ? "done" : ""}"><input type="checkbox" data-todo="${t.id}" ${t.done ? "checked" : ""}/><div class="t-body"><div class="t-text">${esc(t.text)}</div><div class="t-sub">${t.assignee ? `<span>👤 ${esc(t.assignee)}</span>` : ""}${t.due ? `<span class="${dc}">📅 ${esc(fmtDate(t.due))}</span>` : ""}</div></div><button class="sm ghost danger" data-deltodo="${t.id}">✕</button></div>`; }).join("") : `<div class="empty">No TODOs yet.</div>`}`;
+  }
+  function pipesPane(r) {
+    const list = state.pipelines.filter(p => p.reqId === r.id);
+    return `<div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="primary sm" id="addPipe">＋ Pipeline</button></div>
+      ${list.length ? list.map(p => `<div class="pipe"><div class="row" style="justify-content:space-between"><b>${esc(p.name)}</b><button class="sm ghost" data-editpipe="${p.id}">✎</button></div>${(p.stages || []).map(st => `<div class="stage"><span class="dot-s ${st.st === "ok" ? "ok" : st.st === "run" ? "run" : st.st === "fail" ? "fail" : ""}"></span><span class="name">${esc(st.name)}</span><span class="muted" style="font-size:11px">${st.st === "ok" ? "done" : st.st === "run" ? "running" : st.st === "fail" ? "failed" : "pending"}</span></div>`).join("")}</div>`).join("") : `<div class="empty">No pipelines yet. Track build/deploy stages here.</div>`}`;
+  }
+  const WB_COLORS = ["#0f172a", "#dc2626", "#2563eb", "#16a34a", "#d97706", "#7c3aed"];
+  function whiteboardPane(r) {
+    return `<div id="wbHost" style="position:relative;height:640px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div class="empty" id="wbLoading">Loading whiteboard…</div></div>`;
+  }
+  function whiteboardCanvasHTML() {
+    return `<div class="wb-toolbar">
+      ${WB_COLORS.map((c, i) => `<button class="wb-sw ${i === 0 ? "active" : ""}" data-wbcolor="${c}" style="background:${c}" title="${c}"></button>`).join("")}
+      <span class="muted">|</span>
+      <select id="wbSize" title="Brush size"><option value="2">Thin</option><option value="4" selected>Medium</option><option value="8">Thick</option><option value="16">XL</option></select>
+      <button class="wb-tool" id="wbPen">✏️ Pen</button>
+      <button class="wb-tool" id="wbEraser">🧽 Eraser</button>
+      <button id="wbUndo">↶ Undo</button>
+      <button class="danger" id="wbClear">Clear</button>
+      <button id="wbDownload">⬇ PNG</button>
+      <span class="muted" style="font-size:12px">Auto-saves per task</span>
+    </div>
+    <div class="wb-wrap"><canvas id="wbCanvas"></canvas></div>`;
+  }
+  function activityPane(r) {
+    const list = state.activity.filter(a => a.reqId === r.id);
+    return `<div class="card"><ul class="plain activity">${list.length ? list.map(a => `<li><span class="muted">${esc(a.t)}</span> — ${esc(a.msg)}</li>`).join("") : `<p class="empty">No activity recorded for this task.</p>`}</ul></div>`;
+  }
+
+  // ---------- wire dynamic screen ----------
+  function wireScreen() {
+    const s = $("#screen");
+    // open task
+    $$("[data-open]", s).forEach(el => el.addEventListener("click", e => {
+      if (e.target.closest("[data-star]")) return;
+      open(el.dataset.open);
+    }));
+    // star toggle
+    $$("[data-star]", s).forEach(el => el.addEventListener("click", e => {
+      e.stopPropagation(); const r = getReq(el.dataset.star); if (r) { r.mine = !r.mine; r.updated = nowStr(); log((r.mine ? "Added to" : "Removed from") + " My Work: " + r.title, r.id); save(); render(); }
+    }));
+    // detail
+    const back = $("#backBtn"); if (back) back.onclick = () => go(view || "mine");
+    const edit = $("#btnEditReq"); if (edit) edit.onclick = () => openReqDialog(curId);
+    const prog = $("#detProg"); if (prog) { prog.addEventListener("input", e => { const r = getReq(curId); r.progress = Number(prog.value); prog.previousElementSibling && (prog.previousElementSibling.textContent = prog.value + "% complete"); }); prog.addEventListener("change", () => { const r = getReq(curId); r.updated = nowStr(); if (r.progress == 100 && r.status !== "Done") { r.status = "Done"; } log("Progress → " + r.progress + "%", r.id); save(); render(); }); }
+    $$("[data-sub]", s).forEach(b => b.addEventListener("click", () => { teardownWhiteboard(); subtab = b.dataset.sub; location.hash = "#/task/" + curId + "/" + subtab; $("#subpane").innerHTML = subPaneHTML(getReq(curId)); $$("[data-sub]").forEach(x => x.classList.toggle("active", x === b)); wireSub(); }));
+    wireSub();
+  }
+  function wireSub() {
+    const s = $("#subpane"); if (!s) return; const r = getReq(curId); if (!r) return;
+    // acceptance
+    const accAdd = $("#accAdd"), accInput = $("#accInput");
+    const addAcc = () => { const v = accInput.value.trim(); if (!v) return; r.acceptItems.push({ id: uid(), text: v, done: false }); r.updated = nowStr(); log("Added criterion", r.id); save(); refreshSub(); };
+    if (accAdd) accAdd.onclick = addAcc;
+    if (accInput) accInput.addEventListener("keydown", e => { if (e.key === "Enter") addAcc(); });
+    $$("[data-acc]", s).forEach(c => c.addEventListener("change", () => { const it = r.acceptItems.find(i => i.id === c.dataset.acc); if (it) { it.done = c.checked; r.updated = nowStr(); save(); refreshSub(); } }));
+    $$("[data-accdel]", s).forEach(b => b.addEventListener("click", () => { r.acceptItems = r.acceptItems.filter(i => i.id !== b.dataset.accdel); r.updated = nowStr(); save(); refreshSub(); }));
+    // notes
+    const an = $("#addNote"); if (an) an.onclick = () => openNoteDialog(null, r.id);
+    $$("[data-editnote]", s).forEach(b => b.addEventListener("click", () => openNoteDialog(b.dataset.editnote, r.id)));
+    // todos
+    const tdAdd = $("#tdAdd"), tdText = $("#tdText");
+    const addTd = () => { const v = tdText.value.trim(); if (!v) return; state.todos.push({ id: uid(), reqId: r.id, text: v, done: false, assignee: $("#tdAssignee").value.trim(), due: $("#tdDue").value, created: nowStr() }); log("Added TODO: " + v, r.id); save(); refreshSub(); };
+    if (tdAdd) tdAdd.onclick = addTd;
+    if (tdText) tdText.addEventListener("keydown", e => { if (e.key === "Enter") addTd(); });
+    $$("[data-todo]", s).forEach(c => c.addEventListener("change", () => { const t = state.todos.find(x => x.id === c.dataset.todo); if (t) { t.done = c.checked; log((t.done ? "Completed" : "Reopened") + " TODO: " + t.text, r.id); save(); refreshSub(); } }));
+    $$("[data-deltodo]", s).forEach(b => b.addEventListener("click", () => { state.todos = state.todos.filter(x => x.id !== b.dataset.deltodo); save(); refreshSub(); }));
+    // pipelines
+    const ap = $("#addPipe"); if (ap) ap.onclick = () => openPipeDialog(null, r.id);
+    $$("[data-editpipe]", s).forEach(b => b.addEventListener("click", () => openPipeDialog(b.dataset.editpipe, r.id)));
+    // whiteboard
+    const host = $("#wbHost"); if (host) mountWhiteboard(r);
+  }
+
+  // ---------- whiteboard (Excalidraw with offline canvas fallback) ----------
+  let wbRoot = null, wbSaveTimer = null, wbFlush = null;
+  function excalReady() { return !!(window.ExcalidrawLib && window.React && window.ReactDOM && window.ExcalidrawLib.Excalidraw && window.ReactDOM.createRoot); }
+  function teardownWhiteboard() {
+    clearTimeout(wbSaveTimer);
+    if (wbFlush) { try { wbFlush(); } catch (_) {} wbFlush = null; }   // flush pending scene before unmount so drawings aren't lost
+    if (wbRoot) { try { wbRoot.unmount(); } catch (_) {} wbRoot = null; }
+  }
+  function mountWhiteboard(r) {
+    const host = $("#wbHost"); if (!host) return;
+    let tries = 0;
+    (function attempt() {
+      if (!$("#wbHost")) return;                 // user navigated away
+      if (excalReady()) { renderExcalidraw(host, r); return; }
+      if (tries++ > 30) { renderFallback(host, r); return; }   // ~4.5s then fall back
+      setTimeout(attempt, 150);
+    })();
+  }
+  function renderExcalidraw(host, r) {
+    teardownWhiteboard();
+    host.innerHTML = "";
+    const { Excalidraw } = window.ExcalidrawLib;
+    const scene = r.wbScene || {};
+    const initialData = {
+      elements: Array.isArray(scene.elements) ? scene.elements : [],
+      files: scene.files || {},
+      appState: { viewBackgroundColor: (scene.appState && scene.appState.viewBackgroundColor) || "#ffffff" },
+      scrollToContent: true,
+    };
+    const onChange = (elements, appState, files) => {
+      const snap = { elements: (elements || []).filter(e => !e.isDeleted), files: files || {}, appState: { viewBackgroundColor: appState.viewBackgroundColor } };
+      wbFlush = () => { const live = getReq(r.id); if (live) { live.wbScene = snap; live.updated = nowStr(); save(); } };
+      clearTimeout(wbSaveTimer);
+      wbSaveTimer = setTimeout(() => { if (wbFlush) { wbFlush(); wbFlush = null; } }, 800);
+    };
+    wbRoot = window.ReactDOM.createRoot(host);
+    wbRoot.render(window.React.createElement(Excalidraw, { initialData, onChange }));
+  }
+  function renderFallback(host, r) {
+    teardownWhiteboard();
+    host.style.height = "auto"; host.style.border = "none"; host.style.overflow = "visible";
+    host.innerHTML = `<div class="banner" style="display:block;background:var(--accent-soft);color:var(--text);border:1px solid var(--border)">
+      ⚠ Rich whiteboard needs internet to load the first time — you're offline, so this task uses the built-in canvas.</div>` + whiteboardCanvasHTML();
+    const cv = $("#wbCanvas", host); if (cv) initWhiteboard(cv, r);
+  }
+
+  let wbColor = WB_COLORS[0], wbSize = 4, wbErase = false;
+  function initWhiteboard(cv, r) {
+    const wrap = cv.parentElement;
+    const W = Math.max(300, wrap.clientWidth), H = 520;
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    const undo = [];
+    if (r.whiteboard) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, W, H); img.src = r.whiteboard; }
+    let drawing = false, lx = 0, ly = 0;
+    const pos = e => { const b = cv.getBoundingClientRect(); return { x: (e.clientX - b.left) * (cv.width / b.width), y: (e.clientY - b.top) * (cv.height / b.height) }; };
+    const persist = () => { r.whiteboard = cv.toDataURL("image/png"); r.updated = nowStr(); save(); };
+    const start = e => { e.preventDefault(); drawing = true; if (undo.length >= 20) undo.shift(); undo.push(cv.toDataURL("image/png")); const p = pos(e); lx = p.x; ly = p.y; };
+    const move = e => { if (!drawing) return; e.preventDefault(); const p = pos(e); ctx.strokeStyle = wbErase ? "#ffffff" : wbColor; ctx.lineWidth = wbErase ? Math.max(wbSize, 12) : wbSize; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(p.x, p.y); ctx.stroke(); lx = p.x; ly = p.y; };
+    const end = () => { if (drawing) { drawing = false; persist(); } };
+    cv.addEventListener("pointerdown", start);
+    cv.addEventListener("pointermove", move);
+    cv.addEventListener("pointerup", end);
+    cv.addEventListener("pointerleave", end);
+    // toolbar
+    const setTool = () => { const pen = $("#wbPen"), er = $("#wbEraser"); if (pen) pen.classList.toggle("active", !wbErase); if (er) er.classList.toggle("active", wbErase); };
+    $$("[data-wbcolor]").forEach(b => b.addEventListener("click", () => { wbColor = b.dataset.wbcolor; wbErase = false; $$("[data-wbcolor]").forEach(x => x.classList.toggle("active", x === b)); setTool(); }));
+    const sz = $("#wbSize"); if (sz) { sz.value = String(wbSize); sz.addEventListener("change", () => wbSize = Number(sz.value)); }
+    const pen = $("#wbPen"); if (pen) pen.onclick = () => { wbErase = false; setTool(); };
+    const er = $("#wbEraser"); if (er) er.onclick = () => { wbErase = true; setTool(); };
+    const un = $("#wbUndo"); if (un) un.onclick = () => { const d = undo.pop(); if (!d) return; const img = new Image(); img.onload = () => { ctx.clearRect(0, 0, W, H); ctx.drawImage(img, 0, 0, W, H); persist(); }; img.src = d; };
+    const cl = $("#wbClear"); if (cl) cl.onclick = () => { if (!confirm("Clear the whiteboard?")) return; undo.push(cv.toDataURL("image/png")); ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); persist(); };
+    const dl = $("#wbDownload"); if (dl) dl.onclick = () => { const a = document.createElement("a"); a.href = cv.toDataURL("image/png"); a.download = "whiteboard-" + (r.title || "task").replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".png"; a.click(); };
+    setTool();
+  }
+  function refreshSub() {
+    const r = getReq(curId); if (!r) { render(); return; }
+    teardownWhiteboard();
+    $("#subpane").innerHTML = subPaneHTML(r);
+    // update the count badges + progress bar in header without full nav reset
+    const prog = $("#detProg"); if (prog) prog.value = reqProgress(r);
+    wireSub();
+    // refresh subtab counts
+    $$("[data-sub]").forEach(b => {
+      const t = b.dataset.sub; let c = 0;
+      if (t === "notes") c = state.notes.filter(n => n.reqId === r.id).length;
+      else if (t === "todos") c = state.todos.filter(x => x.reqId === r.id).length;
+      else if (t === "pipelines") c = state.pipelines.filter(p => p.reqId === r.id).length;
+      const label = { overview: "Overview", notes: "Notes", todos: "TODOs", whiteboard: "Whiteboard", pipelines: "Pipelines", activity: "Activity" }[t];
+      b.innerHTML = label + (c ? ` <span class="muted">(${c})</span>` : "");
+      b.classList.toggle("active", t === subtab);
+    });
+  }
+
+  // ---------- dialogs ----------
+  function openReqDialog(id) {
+    editingReqId = id; const r = id ? getReq(id) : null;
+    $("#reqDlgTitle").textContent = r ? "Edit task" : "New task";
+    $("#fTitle").value = r ? r.title : ""; $("#fReq").value = r ? (r.requester || "") : "";
+    $("#fRole").value = r ? r.role : "Teammate"; $("#fPrio").value = r ? r.priority : "Medium";
+    $("#fStatus").value = r ? r.status : "Backlog"; $("#fProgress").value = r ? reqProgress(r) : 0;
+    $("#fTarget").value = r ? (r.target || "") : ""; $("#fMine").checked = r ? !!r.mine : true;
+    $("#fDesc").value = r ? (r.desc || "") : ""; $("#fTags").value = r ? (r.tags || []).join(", ") : "";
+    $("#btnDeleteReq").style.display = r ? "inline-block" : "none";
+    $("#reqDialog").showModal(); $("#fTitle").focus();
+  }
+  function saveReqDialog() {
+    const title = $("#fTitle").value.trim(); if (!title) { $("#fTitle").focus(); return; }
+    const p = { title, requester: $("#fReq").value.trim(), role: $("#fRole").value, priority: $("#fPrio").value,
+      status: $("#fStatus").value, progress: Math.max(0, Math.min(100, Number($("#fProgress").value) || 0)),
+      target: $("#fTarget").value, mine: $("#fMine").checked, desc: $("#fDesc").value.trim(),
+      tags: $("#fTags").value.split(",").map(t => t.trim()).filter(Boolean), updated: nowStr() };
+    if (p.status === "Done" && p.progress < 100) p.progress = 100;
+    if (editingReqId) { const r = getReq(editingReqId); Object.assign(r, p); log("Updated task", r.id); }
+    else { p.id = uid(); p.created = nowStr(); p.acceptItems = []; state.requirements.push(p); log("Created task: " + title, p.id); curId = p.id; subtab = "overview"; }
+    $("#reqDialog").close(); save(); render();
+  }
+  function deleteReqDialog() {
+    if (!editingReqId || !confirm("Delete this task and its notes/todos/pipelines?")) return;
+    const id = editingReqId;
+    const gone = getReq(id);
+    if (gone && gone.jiraKey && !state.jiraDismissed.includes(gone.jiraKey)) state.jiraDismissed.push(gone.jiraKey); // don't let the hourly sync re-add it
+    state.requirements = state.requirements.filter(x => x.id !== id);
+    state.notes = state.notes.filter(x => x.reqId !== id);
+    state.todos = state.todos.filter(x => x.reqId !== id);
+    state.pipelines = state.pipelines.filter(x => x.reqId !== id);
+    log("Deleted a task"); $("#reqDialog").close(); curId = null; save(); go(view || "mine");
+  }
+
+  function openNoteDialog(id, reqId) {
+    editingNoteId = id; dialogCtxReq = reqId; const n = id ? state.notes.find(x => x.id === id) : null;
+    $("#noteDlgTitle").textContent = n ? "Edit note" : "New note";
+    $("#nTitle").value = n ? (n.title || "") : ""; $("#nBody").value = n ? (n.body || "") : "";
+    $("#btnDeleteNote").style.display = n ? "inline-block" : "none";
+    $("#noteDialog").showModal(); $("#nTitle").focus();
+  }
+  function saveNoteDialog() {
+    const title = $("#nTitle").value.trim(), body = $("#nBody").value.trim();
+    if (!title && !body) { $("#noteDialog").close(); return; }
+    if (editingNoteId) { const n = state.notes.find(x => x.id === editingNoteId); n.title = title; n.body = body; n.updated = nowStr(); }
+    else state.notes.push({ id: uid(), reqId: dialogCtxReq || "", title, body, updated: nowStr() });
+    log("Saved note", dialogCtxReq); $("#noteDialog").close(); save(); if (curId) refreshSub(); else render();
+  }
+  function deleteNoteDialog() { if (editingNoteId && confirm("Delete this note?")) { state.notes = state.notes.filter(x => x.id !== editingNoteId); $("#noteDialog").close(); save(); if (curId) refreshSub(); else render(); } }
+
+  function parseStages(text) { return text.split("\n").map(l => l.trim()).filter(Boolean).map(l => { let st = ""; const m = l.match(/^\[(ok|run|fail)\]\s*(.*)$/i); if (m) { st = m[1].toLowerCase(); l = m[2]; } return { name: l, st }; }); }
+  function stagesToText(st) { return (st || []).map(s => (s.st ? "[" + s.st + "] " : "") + s.name).join("\n"); }
+  function openPipeDialog(id, reqId) {
+    editingPipeId = id; dialogCtxReq = reqId; const p = id ? state.pipelines.find(x => x.id === id) : null;
+    $("#pipeDlgTitle").textContent = p ? "Edit pipeline" : "New pipeline";
+    $("#pName").value = p ? p.name : ""; $("#pStages").value = p ? stagesToText(p.stages) : "";
+    $("#btnDeletePipe").style.display = p ? "inline-block" : "none";
+    $("#pipeDialog").showModal(); $("#pName").focus();
+  }
+  function savePipeDialog() {
+    const name = $("#pName").value.trim(); if (!name) { $("#pName").focus(); return; }
+    const stages = parseStages($("#pStages").value);
+    if (editingPipeId) { const p = state.pipelines.find(x => x.id === editingPipeId); p.name = name; p.stages = stages; }
+    else state.pipelines.push({ id: uid(), reqId: dialogCtxReq || "", name, stages });
+    log("Saved pipeline: " + name, dialogCtxReq); $("#pipeDialog").close(); save(); if (curId) refreshSub(); else render();
+  }
+  function deletePipeDialog() { if (editingPipeId && confirm("Delete this pipeline?")) { state.pipelines = state.pipelines.filter(x => x.id !== editingPipeId); $("#pipeDialog").close(); save(); if (curId) refreshSub(); else render(); } }
+
+  function applyTheme() { document.documentElement.setAttribute("data-theme", state.settings.theme === "dark" ? "dark" : "light"); }
+
+  // ---------- bind static ----------
+  function bind() {
+    $("#logoHome").onclick = () => go("mine");
+    $("#nav").addEventListener("click", e => { const b = e.target.closest(".navbtn"); if (b) go(b.dataset.view); });
+    $("#btnNew").onclick = () => openReqDialog(null);
+    $("#btnExport").onclick = doExport;
+    $("#btnImport").onclick = () => $("#fileInput").click();
+    $("#fileInput").onchange = e => { if (e.target.files[0]) doImport(e.target.files[0]); e.target.value = ""; };
+    $("#btnJira").onclick = () => fetchJiraInbox(true);
+    $("#btnTheme").onclick = () => { state.settings.theme = state.settings.theme === "dark" ? "light" : "dark"; applyTheme(); save(); };
+    $("#search").addEventListener("input", () => { if (!curId) render(); });
+    $("#btnSaveReq").onclick = saveReqDialog; $("#btnDeleteReq").onclick = deleteReqDialog;
+    $("#btnSaveNote").onclick = saveNoteDialog; $("#btnDeleteNote").onclick = deleteNoteDialog;
+    $("#btnSavePipe").onclick = savePipeDialog; $("#btnDeletePipe").onclick = deletePipeDialog;
+    $$("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
+    window.addEventListener("hashchange", () => { fromHash(); render(); });
+    window.addEventListener("storage", e => { if (e.key === LS_KEY && e.newValue) { try { state = JSON.parse(e.newValue); normalize(); applyTheme(); render(); } catch (_) {} } });
+  }
+
+  // ---------- init ----------
+  try {
+    load(); bind(); applyTheme(); fromHash(); render(); $("#saveInd").textContent = "Ready";
+    updateJiraBadge(); fetchJiraInbox(false); setInterval(() => fetchJiraInbox(false), 300000); // poll inbox every 5 min
+  }
+  catch (e) {
+    document.body.insertAdjacentHTML("afterbegin", `<div style="background:#fee2e2;color:#991b1b;padding:14px">⚠ Load error: ${esc(e.message)}. Your exported JSON is safe.</div>`);
+    console.error(e);
+  }
+})();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+</script>
+</body>
+</html>
