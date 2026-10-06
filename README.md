@@ -1,3 +1,5 @@
+<img width="4108" height="2576" alt="image" src="https://github.com/user-attachments/assets/b99b53d4-b818-46ee-a506-ad2fecfa797f" />
+
 # Requirements Tracker
 
 A single-page, no-build personal workspace for feature requirements, notes, todos, pipelines and diagrams (Excalidraw) — with **hourly auto-sync of your assigned Jira tickets** (plus linked GitLab MRs/pipelines).
